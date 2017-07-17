@@ -62,9 +62,19 @@ var gameObj = {
 			plyrTwoWins:0,
 			plyrTwoLosses:0,
 			ties:0,
-			playerOneImgs:"",
-			playerTwoImgs:"",
+			turn:1,
+			plyrTurn:1,
+			plyrOneChoice:"",
+			plyrTwoChoice:"",
 			playerKeys: [1,2],
+			plyrOneDtch:"",
+			plyrTwoDtch:"",
+			yourTurn: true,
+			rpsObj: {
+				paper:[$("<img>").attr("src",'assets/images/paper.png'),$("<img>").attr("src",'assets/images/paper_2.png')],
+				rock:[$("<img>").attr("src",'assets/images/rock.png'),$("<img>").attr("src",'assets/images/rock_2.png')],
+				scissors:[$("<img>").attr("src",'assets/images/scissors.png'),$("<img>").attr("src",'assets/images/scissors_2.png')],
+			},
 			selectPlayers: function () {
 				//coders bay view tracker (children snapshot)
 
@@ -74,9 +84,9 @@ var gameObj = {
 
 				//check to see if they are removed from the game if disconnected
 				event.preventDefault();
-				// debugger;
+				
 				//could also assign player one and two here, and update their values in the database based on JS
-				playerName = $("#addPlayer").val().trim();
+				playerName = $("#addPlayer").val().trim().toUpperCase();
 
 				console.log(playerName);
 				//should this be in a click function? 
@@ -90,6 +100,7 @@ var gameObj = {
 					    	losses:0,
 					    	ties:0
 						})
+						gameObj.plyrTurn = 1
 					//bad logic. would overwrite whatever's in p2 if p1 disconnects and players exists 
 					} else if (snapshot.child("players").exists()) {
 						database.ref("/players/2").set({
@@ -98,6 +109,7 @@ var gameObj = {
 					    	losses:0,
 					    	ties:0
 						})
+						gameObj.plyrTurn = 2
 					}
 
 					// gameObj.displayPlayers();
@@ -109,68 +121,245 @@ var gameObj = {
 			displayPlayers: function () {
 				//change to child_added / child_changed (more stable)
 				database.ref().on("value", function (snapshot) {
-				
-					if (snapshot.child("players").child("1").exists()) {
+				// debugger;
+					if (snapshot.child("players").child("1").exists()) {	
 						gameObj.playerOne = snapshot.child("players").child("1").val().playerName;
 						$("h3.playerOne").html(gameObj.playerOne);
+						if ($("div.playerOne").find("div.results").text() === "") {
+							$("div.playerOne").find("div.results").append("<p>Wins: " + gameObj.plyrOneWins)
+							$("div.playerOne").find("div.results").append("<p>Losses: " + gameObj.plyrOneLosses)
+							$("div.playerOne").find("div.results").append("<p>Ties: " + gameObj.ties)
+						}
 					}
 
 					if (snapshot.child("players").child("2").exists()) {
-						gameObj.playerTwo = snapshot.child("players").child("2").val().playerName
-						$("h3.playerTwo").html(gameObj.playerTwo);
+						gameObj.playerTwo = snapshot.child("players").child("2").val().playerName;
+						$("h3.playerTwo").html(gameObj.playerTwo)
+						if ($("div.playerTwo").find("div.results").text() === "") {
+							$("div.playerTwo").find("div.results").append("<p>Wins: " + gameObj.plyrTwoWins)
+							$("div.playerTwo").find("div.results").append("<p>Losses: " + gameObj.plyrTwoLosses)
+							$("div.playerTwo").find("div.results").append("<p>Ties: " + gameObj.ties)
+						}
 					}
+					
+				});
+				
 				database.ref("/players/1").onDisconnect().remove();
 				database.ref("/players/2").onDisconnect().remove();
-				});
 			},
 			displayGameMsg: function () {
 				//need this to show text to each respective player
-				//child_added doesn't distinguish between 1 and 2 childs
-				
-				database.ref("players").on("value", function(snapshot) {
-					
-					if (gameObj.playerOne === playerName) {
+				//child_added doesn't distinguish between 1 and 2 child
+				if (gameObj.playerOne === playerName) {
+					if(!$("h3").hasClass("gameMsg")){
 						$("#form1").replaceWith("<h3 class='gameMsg text-center'>" + gameObj.playerOne + " , you are player one.")
 					}
-					if (gameObj.playerTwo === playerName) {
+				}
+				if (gameObj.playerTwo === playerName) {
+					if(!$("h3").hasClass("gameMsg")){
 						$("#form1").replaceWith("<h3 class='gameMsg text-center'>" + gameObj.playerTwo + " , you are player two.")
 					}
-					if (snapshot.child("1").exists() && snapshot.child("2").exists()) {
+				}
+				database.ref("players").on("value", function(snapshot) {
+					if (snapshot.child("1").exists() && snapshot.child("2").exists() && !snapshot.child("choices").exists()) {
+		
 						gameObj.gameStartLogic();
 					}
 				});
 
 				
 			},
+			//should retool so it happens on each click?
+			//or create game object variables equal to this information
 			gameStartLogic: function () {
-				database.ref().on("value", function(snapshot) {	
-					database.ref().update({
-						turn:1
-					});
+			
+
+				if (gameObj.turn === gameObj.plyrTurn) { 
+
+		
+
+					if (gameObj.plyrTurn ===1) {
+						if(!$("h3").hasClass("gameMsgOne")) {
+							$("h3.gameMsg").after("<h3 class='gameMsgOne text-center'>" + "It's your turn.")
+						}
+						
+						$("div.playerOne").prepend("<a href='#!'>");
+						$("div.panel-body").find("a").eq(0).addClass("rock").attr("data-rps","rock").append(gameObj.rpsObj.rock[0])
+						$("div.playerOne").prepend("<a href='#!'>");
+						$("div.panel-body").find("a").eq(0).addClass("paper").attr("data-rps","paper").append(gameObj.rpsObj.paper[0])
+						$("div.playerOne").prepend("<a href='#!'>");
+						$("div.playerOne").find("a").eq(0).addClass("scissors").attr("data-rps","scissors").append(gameObj.rpsObj.scissors[0]);
+						
+
+
+						$("div.panel-body").find("img").addClass("img-responsive center-block");
+						$("div.panel-body").find("a").addClass("float").wrap("<div class='col-lg-4 col-md-4 col-sm-6 col-xs-6'>")
+						$("a.rock").parent().addClass("col-sm-offset-3 col-xs-offset-3");
+					} else if (gameObj.plyrTurn ===2) { 
+						if(!$("h3").hasClass("gameMsgOne")) {
+							$("h3.gameMsg").after("<h3 class='gameMsgOne text-center'>" + "It's your turn.")
+						}
+						$("div.playerTwo").prepend("<a href='#!'>");
+						$("div.panel-body").find("a").eq(0).addClass("rock").attr("data-rps","rock").append(gameObj.rpsObj.rock[1])
+						$("div.playerTwo").prepend("<a href='#!'>");
+						$("div.panel-body").find("a").eq(0).addClass("paper").attr("data-rps","paper").append(gameObj.rpsObj.paper[1])
+						$("div.playerTwo").aprepend("<a href='#!'>");
+						$("div.playerTwo").find("a").eq(0).addClass("scissors").attr("data-rps","scissors").append(gameObj.rpsObj.scissors[1]);
+						
+
+						
+						$("div.panel-body").find("img").addClass("img-responsive center-block");
+						$("div.panel-body").find("a").addClass("float").wrap("<div class='col-lg-4 col-md-4 col-sm-6 col-xs-6'>")
+						$("a.rock").parent().addClass("col-sm-offset-3 col-xs-offset-3");			
+					} 
+
+
+					//display game objects
+					//else it's the other player's turn
+				} else { 
+						$("h3.gameMsg").after("<h3 class='gameMsgOne text-center'>" + "Waiting for your opponent.")
+					}
+				 // else {
+
+					// if(!$("h3").hasClass("gameMsgTwo")){
+					// 	$("h3.gameMsg").after("<h3 class='gameMsgTwo text-center'>" + "Waiting for your opponent.")
+					// }
+
+			},
+			rpsClick: function() {
+				//on click, log selection to firebase
+				$("body").one("click","img",function () {
+					event.preventDefault()
+
+					if (gameObj.plyrTurn === 1) { 
+						
+						gameObj.plyrOneChoice = $(this).closest("a").data("rps")
+						database.ref("players").child("1").update({
+							choice: gameObj.plyrOneChoice 
+						})
+						
+						gameObj.turn = 2
+						// debugger;
+						database.ref().update({
+							turn:gameObj.turn
+						})
+
+						// $(".playerOne").fin
+						plyrOneDtch = $(".playerOne").find(".col-lg-4").detach();
+						for (var i in gameObj.rpsObj) {
+							// temp = Object.keys(gameObj.rpsObj)
+							if (gameObj.plyrOneChoice === i) {
+								$("div.playerOne").prepend("<a href='#!'>");
+								$(".playerOne").find("a").append(this)
+							}
+						}
+
+						//attach the picture matching the data attr for the current pick
+							//for the length of the rps object keys, if key matches data ref object of the player  pick, DOM print the pic
+						
+						
+					} else if (gameObj.plyrTurn === 2) {
+						// debugger;
+						gameObj.plyrTwoChoice = $(this).closest("a").data("rps")
+						database.ref("players").child("2").update({
+							choice: gameObj.plyrTwoChoice 
+						})
+						gameObj.turn = 1
+			
+						database.ref().update({
+							turn:gameObj.turn
+						})
+						plyrTwoDtch = $(".playerTwo").find(".col-lg-4").detach();
+						for (var i in gameObj.rpsObj) {
+							// temp = Object.keys(gameObj.rpsObj)
+							if (gameObj.plyrTwoChoice === i) {
+								$("div.playerTwo").prepend("<a href='#!'>");
+								$(".playerTwo").find("a").append(this)
+							}
+						}
+
+					}
+					//on click, log the rps data
+					//set choice to a local variable
+					//if the player is one, send to the 1 node
+
+					//else send to 2 node
+
+					//html the a tag with the matching data attribute
+				})
+				//display a game message
+			},
+
+			yourTurn: function () {
+				//gamelogic only updates your player. need to update both players
+				database.ref().on("child_added", function(childSnapshot) {
+					
+					if (childSnapshot.val() === gameObj.plyrTurn) { 
+	
+							$(".gameMsgOne").empty();
+							$("h3.gameMsg").after("<h3 class='gameMsgOne text-center'>" + "It's your turn.")
+							//either run a function or make this the dom change function
+							//needs to link back to the rps click function 
+
+								
+
+								if (gameObj.plyrTurn ===1) {
+									$(".playerOne").find("a").remove();
+									$(".playerOne").append(plyrOneDtch)
+									return gameObj.rpsClick()
+									
+								} else if (gameObj.plyrTurn ===2) { 
+									// debugger;
+									$(".playerOne").find("a").remove();
+
+									$("div.playerTwo").prepend("<a href='#!'>");
+									$("div.panel-body").find("a").eq(0).addClass("rock").attr("data-rps","rock").append(gameObj.rpsObj.rock[1])
+									$("div.playerTwo").prepend("<a href='#!'>");
+									$("div.panel-body").find("a").eq(0).addClass("paper").attr("data-rps","paper").append(gameObj.rpsObj.paper[1])
+									$("div.playerTwo").prepend("<a href='#!'>");
+									$("div.playerTwo").find("a").eq(0).addClass("scissors").attr("data-rps","scissors").append(gameObj.rpsObj.scissors[1]);
+									
+
+									
+									$("div.panel-body").find("img").addClass("img-responsive center-block");
+									$("div.panel-body").find("a").addClass("float").wrap("<div class='col-lg-4 col-md-4 col-sm-6 col-xs-6'>")
+									$("a.rock").parent().addClass("col-sm-offset-3 col-xs-offset-3");
+									return gameObj.rpsClick()
+												
+								} 
+							//focus on re-using code  
+						
+				
+					}	else { 
+						$(".gameMsgOne").empty();
+						$("h3.gameMsg").after("<h3 class='gameMsgOne text-center'>" + "Waiting for your opponent.")
+					}
 
 				});
-				database.ref("players").orderByKey().once("value", function(snapshot) {
-					debugger;
-					snapshot.forEach(function(childSnapshot){
-						// if the current turn equals player key, display 
-						//message, it's your turn
-							//display game objects
-						console.log(childSnapshot.key);
-					});
-				});
+					
+				//event listener, if it's your turn, once per turn value change, run the gameStartLogic function
+
+				//on child changed match turn to dataref and player key when updating data
+				//then change turn again and trigger the next round function 
+			},
+			gameContLogic: function () {
+
+
 			}
-			//gameLogic function
-				//on click function, update your firebase object with the RPS choice
-				//update the dom
-				//change turn
-				//call on turn function
-					//display your turn to next player
 
-				//if player 1 and 2 both have keys for RPS, compare and decide who won,tie etc
-					//update counters
 
 		}
 
+//game functions
+	//html do something function
+	//firebase update function
+	//html do something function
+		//etc 
+
+
+//player data logged to firebase
+	//detach game objects, stored to local variable
+	//reattach them when it's their turn again. 
 
 
 	//if condition needs to be based off firebase data. you cant do anything without comparing there for multiplayer
@@ -217,9 +406,10 @@ var gameObj = {
 
 $(document).ready(function() {
 	//always listening, and nothing to tell it work based on the results of a click functio
-	$("#add-Player").on("click", gameObj.selectPlayers);
+	$("#add-Player").one("click", gameObj.selectPlayers);
 	gameObj.displayPlayers();
-
+	gameObj.rpsClick();
+	gameObj.yourTurn();
 });
 
 

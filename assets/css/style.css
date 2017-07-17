@@ -1,0 +1,13 @@
+.game-img { 
+	max-width: 50%;
+	max-height: 50%;
+ }
+
+ .float {
+ 	float:left;
+ 	margin:auto;
+ }
+
+ .results {
+ 	float:left;
+ }
