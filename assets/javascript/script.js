@@ -275,7 +275,7 @@ var gameObj = {
 						})
 						
 						gameObj.turn = 2
-						//
+						
 						database.ref().update({
 							turn:gameObj.turn
 						})
@@ -356,11 +356,11 @@ var gameObj = {
 				//gamelogic updates the player divs at the start of the game(or when new player comes online). need to update both players after a game begins
 				
 				database.ref().on("value", function(snapshot) {
-					debugger;
+					// debugger;
 					//if it's your turn and there are choices to make
 					$("div.game").empty();
 					$("h2.text-center").remove();
-					$(".temp").find("a").remove();
+					$(".temp").remove();
 
 					if (snapshot.val().turn === gameObj.plyrTurn) { 
 	
@@ -372,7 +372,7 @@ var gameObj = {
 							//needs to link back to the rps click function 
 
 								if (gameObj.plyrTurn === 1) {
-									$(".playerOne").find("a").remove();
+									// $(".playerOne").find("a").remove();
 
 									$("div.playerOne").prepend("<a href='#!'>");
 									$("div.panel-body").find("a").eq(0).addClass("rock").attr("data-rps","rock").append(gameObj.rpsObj.rock[0])
@@ -390,7 +390,7 @@ var gameObj = {
 									
 								} else if (gameObj.plyrTurn === 2) { 
 									// 
-									$(".playerOne").find("a").remove();
+									// $(".playerOne").find("a").remove();
 
 									$("div.playerTwo").prepend("<a href='#!'>");
 									$("div.panel-body").find("a").eq(0).addClass("rock").attr("data-rps","rock").append(gameObj.rpsObj.rock[1])
@@ -427,8 +427,8 @@ var gameObj = {
 
 				gameObj.resultsRnd = {
 						tie: $("<h2 class='resultsRnd text-center'> TIE </h2>"), 
-						playerOne: $("<h2 class='resultsRnd text-center'>" + gameObj.playerOne + "WINS"),
-						playerTwo: $("<h2 class='resultsRnd text-center'>" + gameObj.playerTwo + "WINS")
+						playerOne: $("<h2 class='resultsRnd text-center'>" + gameObj.playerOne + " WINS</h2>"),
+						playerTwo: $("<h2 class='resultsRnd text-center'>" + gameObj.playerTwo + " WINS</h2>")
 						};
 
 				
@@ -436,15 +436,19 @@ var gameObj = {
 					if (gameObj.plyrOneChoice !== "" && gameObj.plyrTwoChoice !== "") { 
 
 						//grabs all of second player's icons instead of the one displaying
-						
-								var tempOne = $("div.playerOne").find("a").detach();
-								$("div.playerOne").prepend(tempOne).addClass("temp");
+							var draw = database.ref().on("value", function (snapshot) {
+								debugger;
+								// var tempOne = $("div.playerOne").find("a").detach();
+								$("div.playerOne").find("a").addClass("temp");
 								$("div.playerOne").find("a").after("<h2 class='text-center'>" + gameObj.plyrOneChoice);
 							
-								var tempTwo = $("div.playerTwo").find("a").detach();
-								$("div.playerTwo").prepend(tempTwo).addClass("temp");
+								// var tempTwo = $("div.playerTwo").find("a").detach();
+								$("div.playerTwo").find("a").addClass("temp");
 								$("div.playerTwo").find("a").after("<h2 class='text-center'>" + gameObj.plyrTwoChoice);
-				
+								
+								// database.ref().off("value", draw)
+							});
+
 						//at each key in the object, display image 0 if it matches the current val
 
 						// tempTwo = $(".playerTwo").find("a").detach();
@@ -453,13 +457,14 @@ var gameObj = {
 						// $(".playerTwo").prepend(tempTwo);
 
 					
-						
+						//
 						if (gameObj.plyrOneChoice === gameObj.plyrTwoChoice) {
 							
 							gameObj.ties++
-
-							$("div.game").append(gameObj.resultsRnd.tie)
-
+							var updateTie = database.ref().on("value", function (snapshot) {
+								$("div.game").append(gameObj.resultsRnd.tie)
+								database.ref().off("value", updateTie)
+							});
 							database.ref("players").child("1").update({
 								ties:gameObj.ties
 							})
@@ -467,11 +472,58 @@ var gameObj = {
 							database.ref("players").child("2").update({
 								ties:gameObj.ties
 							})
+							
+							// rock wins
+								//rock beats scissors
+								//paper beats rock
+								//scissors beats paper
+						} else if ( gameObj.plyrOneChoice === "rock" && gameObj.plyrTwoChoice ==="scissors" 
+									||
+									gameObj.plyrOneChoice === "paper" && gameObj.plyrTwoChoice ==="rock"
+									||
+									gameObj.plyrOneChoice === "scissors" && gameObj.plyrTwoChoice ==="paper" ) {
+								
+								gameObj.plyrOneWins++;
+								gameObj.plyrTwoLosses++;
+
+							var updateWin = database.ref().on("value", function (snapshot) {
+								$("div.game").append(gameObj.resultsRnd.playerOne)
+								database.ref().off("value", updateWin)
+							});
+
+								database.ref("players").child("1").update({
+									wins:gameObj.plyrOneWins
+								})
+
+								database.ref("players").child("2").update({
+									losses:gameObj.plyrTwoLosses
+								})
+
+						} else if ( gameObj.plyrTwoChoice === "rock" && gameObj.plyrOneChoice ==="scissors" 
+									||
+									gameObj.plyrTwoChoice === "paper" && gameObj.plyrOneChoice ==="rock"
+									||
+									gameObj.plyrTwoChoice === "scissors" && gameObj.plyrOneChoice ==="paper" ) {
+								
+								gameObj.plyrTwoWins++;
+								gameObj.plyrOneLosses++;
+
+								updateWin = database.ref().on("value", function (snapshot) {
+									$("div.game").append(gameObj.resultsRnd.playerTwo)
+									database.ref().off("value", updateWin)
+								});
+
+								database.ref("players").child("1").update({
+									ties:gameObj.plyrTwoWins
+								})
+
+								database.ref("players").child("2").update({
+									ties:gameObj.plyrOneLosses
+								})
+						}
+						//do for all
 							database.ref("players").child("1").child("choice").remove()
 							database.ref("players").child("2").child("choice").remove()
-
-
-						}
 
 						var updateOne = $("div.playerOne").find("div.results")
 							updateOne.find("p.wins").text("Wins: " + gameObj.plyrOneWins)
@@ -515,8 +567,8 @@ var gameObj = {
 
 					};
 
-					//set timeout 5 seconds, then run the yourTurn function to re-populate the game. 
-					gameObj.nextRound = setTimeout(gameObj.yourTurn, 1000 * 3);
+					//set timeout 3 seconds, then run the yourTurn function to re-populate the game. 
+					gameObj.nextRound = setTimeout(gameObj.yourTurn, 1000 * 5);
 
 			}
 
