@@ -327,7 +327,7 @@ var gameObj = {
 
 					//html the a tag with the matching data attribute
 
-					debugger;
+					// debugger;
 					var round = database.ref().on("value", function(snapshot) {
 						// debugger;
 
@@ -337,7 +337,7 @@ var gameObj = {
 							gameObj.plyrTwoChoice = snapshot.child("players").child("2").val().choice;
 							console.log(snapshot.child("players").child("1").val().choice)
 							console.log(snapshot.child("players").child("2").val().choice)
-							debugger;
+							// debugger;
 							database.ref().off("value", round)
 
 							gameObj.gameRound();
@@ -355,14 +355,14 @@ var gameObj = {
 
 				//gamelogic updates the player divs at the start of the game(or when new player comes online). need to update both players after a game begins
 				
-				database.ref().on("child_added", function(childSnapshot) {
+				database.ref().on("value", function(snapshot) {
 					debugger;
 					//if it's your turn and there are choices to make
 					$("div.game").empty();
 					$("h2.text-center").remove();
 					$(".temp").find("a").remove();
 
-					if (childSnapshot.val() === gameObj.plyrTurn) { 
+					if (snapshot.val().turn === gameObj.plyrTurn) { 
 	
 							$(".gameMsgOne").empty();
 
@@ -474,14 +474,14 @@ var gameObj = {
 						}
 
 						var updateOne = $("div.playerOne").find("div.results")
-							updateOne.find("p.wins").replaceWith("Wins: " + gameObj.plyrOneWins)
-							updateOne.find("p.losses").replaceWith("Losses: " + gameObj.plyrOneLosses)
-							updateOne.find("p.ties").replaceWith("Ties: " + gameObj.ties)
+							updateOne.find("p.wins").text("Wins: " + gameObj.plyrOneWins)
+							updateOne.find("p.losses").text("Losses: " + gameObj.plyrOneLosses)
+							updateOne.find("p.ties").text("Ties: " + gameObj.ties)
 
 						var updateTwo = $("div.playerTwo").find("div.results")
-							updateTwo.find("p.wins").replaceWith("Wins: " + gameObj.plyrTwoWins)
-							updateTwo.find("p.losses").replaceWith("Losses: " + gameObj.plyrTwoLosses)
-							updateTwo.find("p.ties").replaceWith("Ties: " + gameObj.ties)
+							updateTwo.find("p.wins").text("Wins: " + gameObj.plyrTwoWins)
+							updateTwo.find("p.losses").text("Losses: " + gameObj.plyrTwoLosses)
+							updateTwo.find("p.ties").text("Ties: " + gameObj.ties)
 						
 
 						//playerChoice
