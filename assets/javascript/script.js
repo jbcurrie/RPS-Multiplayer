@@ -1,5 +1,9 @@
 // Initialize Firebase
 //remove turn on disconnect (both players)
+//get the opponent icon to display in the gameround/RPS click function
+//add new logic
+	//connection drops, if 
+	//with 2 players how to adjust code to recognize players up
   var config = {
     apiKey: "AIzaSyA5F5P0GSsJqFn--1w0Gn53wZYQCwroVcw",
     authDomain: "rockpaperscissors-5e2af.firebaseapp.com",
@@ -151,9 +155,15 @@ var gameObj = {
 				});
 
 				// if one player leaves, they both disconnect
-				database.ref("/players/1").onDisconnect().remove();
-				database.ref("/players/2").onDisconnect().remove();
-				// database.ref("turn").onDisconnect().remove();
+				database.ref("players").child("1").onDisconnect().remove();
+				database.ref("players").child("2").onDisconnect().remove();
+				database.ref("players").on("value", function(snapshot) {
+					// debugger;
+				if (!snapshot.child("1").exists() && !snapshot.child("2").exists()) { 
+					database.ref("turn").onDisconnect().remove();
+				}
+				});
+				
 			},
 			displayGameMsg: function () {
 				//need this to show text to each respective player
@@ -191,7 +201,7 @@ var gameObj = {
 						if (gameObj.plyrTurn === 1) {
 							if(!$("h3").hasClass("gameMsgOne")) {
 								$(".gameMsgOne").empty();
-								
+								// debugger;
 								$("h3.gameMsg").after("<h3 class='gameMsgOne text-center'>" + "It's your turn.")
 							}
 
@@ -245,17 +255,18 @@ var gameObj = {
 
 					//display game objects
 					//else it's the other player's turn
-					} else { 
-							$(".gameMsgOne").empty();
+					} 
+					// else { 
+					// 		$(".gameMsgOne").empty();
 						
-							$("h3.gameMsg").after("<h3 class='gameMsgOne text-center'>" + "Waiting for your opponent.")
-						gameObj.gameReady = true;
-						}
-				 // else {
+					// 		$("h3.gameMsg").after("<h3 class='gameMsgOne text-center'>" + "Waiting for your opponent.")
+					// 	gameObj.gameReady = true;
+					// 	}
+				 // // else {
 
-					// if(!$("h3").hasClass("gameMsgTwo")){
-					// 	$("h3.gameMsg").after("<h3 class='gameMsgTwo text-center'>" + "Waiting for your opponent.")
-					// }
+					// // if(!$("h3").hasClass("gameMsgTwo")){
+					// // 	$("h3.gameMsg").after("<h3 class='gameMsgTwo text-center'>" + "Waiting for your opponent.")
+					// // }
 
 				}
 				
@@ -473,10 +484,7 @@ var gameObj = {
 								ties:gameObj.ties
 							})
 							
-							// rock wins
-								//rock beats scissors
-								//paper beats rock
-								//scissors beats paper
+				
 						} else if ( gameObj.plyrOneChoice === "rock" && gameObj.plyrTwoChoice ==="scissors" 
 									||
 									gameObj.plyrOneChoice === "paper" && gameObj.plyrTwoChoice ==="rock"
@@ -536,44 +544,25 @@ var gameObj = {
 							updateTwo.find("p.ties").text("Ties: " + gameObj.ties)
 						
 
-						//playerChoice
-						//for each
-
-
-						    // if ((userGuess === "r") || (userGuess === "p") || (userGuess === "s")) {
-
-					     //      // This logic determines the outcome of the game (win/loss/tie), and increments the appropriate counter.
-					     //      if ((userGuess === "r") && (computerGuess === "s")) {
-					     //        wins++;
-					     //      }
-					     //      else if ((userGuess === "r") && (computerGuess === "p")) {
-					     //        losses++;
-					     //      }
-					     //      else if ((userGuess === "s") && (computerGuess === "r")) {
-					     //        losses++;
-					     //      }
-					     //      else if ((userGuess === "s") && (computerGuess === "p")) {
-					     //        wins++;
-					     //      }
-					     //      else if ((userGuess === "p") && (computerGuess === "r")) {
-					     //        wins++;
-					     //      }
-					     //      else if ((userGuess === "p") && (computerGuess === "s")) {
-					     //        losses++;
-					     //      }
-					     //      else if (userGuess === computerGuess) {
-					     //        ties++;
-					     //      }
 
 					};
 
-					//set timeout 3 seconds, then run the yourTurn function to re-populate the game. 
+					//set timeout 5 seconds, then run the yourTurn function to re-populate the game. 
 					gameObj.nextRound = setTimeout(gameObj.yourTurn, 1000 * 5);
 
 			}
 
 
 		}
+
+$(document).ready(function() {
+	
+	$("#add-Player").one("click", gameObj.selectPlayers);
+	gameObj.displayPlayers();
+	gameObj.rpsClick();
+	gameObj.yourTurn();
+	// gameObj.gameRound();
+});
 
 //game functions
 	//html do something function
@@ -629,14 +618,7 @@ var gameObj = {
 					//'2' is the second player with the same data
 				//firebase creates a node called turn in the same dataref
 
-$(document).ready(function() {
-	
-	$("#add-Player").one("click", gameObj.selectPlayers);
-	gameObj.displayPlayers();
-	gameObj.rpsClick();
-	gameObj.yourTurn();
-	// gameObj.gameRound();
-});
+
 
 
 		//instead of creating conditions on how to assign firebase data, have the event in JS determine what will be updated in firebase
