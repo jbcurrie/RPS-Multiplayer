@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8">
+			<meta name="viewport" content="width=device-width, initial-scale=1">
+			<title>RPS Multiplayer</title>
+			<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+			  <!-- Optional theme -->
+			<link rel="stylesheet" type="text/css" href="assets/css/style.css">
+			<script src="https://www.gstatic.com/firebasejs/4.2.0/firebase.js"></script>
+		</head>
+			<body>
+				<div class="container">
+					<div class="row">
+						<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+							<div class="page-header">
+								<img src="assets/images/RPS_SHOOT.jpg" alt="RPS_SHOOT" class="center-block img-responsive img-rounded">
+							</div>
+							<div class="row">
+								<div class="col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-6 col-sm-offset-3 col-xs-6 col-xs-offset-3">
+									<form action="" id="form1">
+										<div class="form-group">
+											<div class="input-group">
+												<input class="form-control" type="text" placeholder="Player Name" id="addPlayer">
+												<span type="submit" class="input-group-btn">
+													<button class="btn btn-primary submit-btn" type="submit" form="form1" id="add-Player">Join Game!</button>
+												</span>
+											</div>
+										</div>
+									</form>
+								</div>
+								<div class="row">
+									<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<h3 class="playerOne text-center"></h3>
+											</div>
+											<div class="panel-body playerOne" data-player="1">
+												<div class="results"></div>
+											</div>
+										</div>
+									</div>
+									<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+										<div class="panel panel-default" >
+											<div class="panel-heading">
+												<h3 class="game text-center"></h3>
+											</div>
+											<div class="panel-body game" data-player="game"></div>
+										</div>
+									</div>
+									<div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<h3 class="playerTwo text-center"></h3>
+											</div>
+											<div class="panel-body playerTwo" data-player="2">
+												<div class="results"></div>
+											</div>
+										</div>
+									</div>
+								</div>
+								<div class="row">
+									<div class="col-lg-6 col-lg-offset-3 col-md-6 col-md-offset-3 col-sm-6 col-sm-offset-3 col-xs-6 col-xs-offset-3">
+										<div class="panel panel-default">
+											<div class="panel-heading">
+												<h3></h3>
+											</div>
+											<div class="panel-body chat"></div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+				<script type="text/javascript" src="assets/javascript/script2.js"></script>
+			</body>
+	</html>

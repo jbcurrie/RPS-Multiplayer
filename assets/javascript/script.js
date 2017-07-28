@@ -17,7 +17,6 @@
 
 //store firebase under var database 
 var database = firebase.database();
-
 // connectionsRef references a specific location in our database.
 // All of our connections will be stored in this directory.
 var connectionsRef = database.ref("/connections");
@@ -40,6 +39,18 @@ connectedRef.on("value", function(snap) {
   }
 });
 
+database.ref().on("value", function(snapshot) {
+	database.ref("players").child("1").onDisconnect().remove();
+});
+database.ref().on("value", function(snapshot) {
+	database.ref("players").child("2").onDisconnect().remove();
+});
+database.ref().on("value", function(snapshot) {
+	if (snapshot.child("players").exists() === false) { 
+		database.ref("turn").onDisconnect().remove();
+		//replace with set turn to 1; revise code
+	}
+});
 //compare snapshot against a locally store value to create global conditions 
 	//we should be able to use turn for the game
 
@@ -102,8 +113,7 @@ var gameObj = {
 				//should this be in a click function? 
 				database.ref().once("value", function(snapshot) {
 					
-					
-					if (snapshot.child("players").exists() === false) {
+					if (snapshot.child("/players/1").exists() === false) {
 						database.ref("/players/1").set({
 							playerName: playerName,
 					    	wins:0,
@@ -112,7 +122,7 @@ var gameObj = {
 						})
 						gameObj.plyrTurn = 1
 					//bad logic. would overwrite whatever's in p2 if p1 disconnects and players exists 
-					} else if (snapshot.child("players").exists()) {
+					} else if (snapshot.child("/players/2").exists() === false) {
 						database.ref("/players/2").set({
 							playerName: playerName,
 					    	wins:0,
@@ -120,6 +130,8 @@ var gameObj = {
 					    	ties:0
 						})
 						gameObj.plyrTurn = 2
+					} else if (snapshot.child("/players/2").exists() && snapshot.child("/players/1").exists()) { 
+						return $("#form1").replaceWith("<h3 class='gameMsg text-center'>Game in progress.")
 					}
 
 					// gameObj.displayPlayers();
@@ -155,14 +167,7 @@ var gameObj = {
 				});
 
 				// if one player leaves, they both disconnect
-				database.ref("players").child("1").onDisconnect().remove();
-				database.ref("players").child("2").onDisconnect().remove();
-				database.ref("players").on("value", function(snapshot) {
-					// debugger;
-				if (!snapshot.child("1").exists() && !snapshot.child("2").exists()) { 
-					database.ref("turn").onDisconnect().remove();
-				}
-				});
+				
 				
 			},
 			displayGameMsg: function () {
@@ -193,15 +198,17 @@ var gameObj = {
 			
 				//if there are no choices to make
 				if (gameObj.gameReady === false) {
+					
+					ddatabase.ref().update({
+							turn:gameObj.turn
+						})
 
 					if (gameObj.turn === gameObj.plyrTurn) { 
-
-		
 
 						if (gameObj.plyrTurn === 1) {
 							if(!$("h3").hasClass("gameMsgOne")) {
 								$(".gameMsgOne").empty();
-								// debugger;
+								
 								$("h3.gameMsg").after("<h3 class='gameMsgOne text-center'>" + "It's your turn.")
 							}
 
@@ -217,8 +224,6 @@ var gameObj = {
 								$("div.playerOne").prepend("<a href='#!'>");
 								$("div.playerOne").find("a").eq(0).addClass("scissors").attr("data-rps","scissors").append(gameObj.rpsObj.scissors[0]);
 								
-
-
 								$("div.panel-body").find("img").addClass("img-responsive center-block");
 								$("div.panel-body").find("a").addClass("float").wrap("<div class='col-lg-4 col-md-4 col-sm-6 col-xs-6'>")
 								$("a.rock").parent().addClass("col-lg-offset-2 col-md-offset-2 col-sm-offset-3 col-xs-offset-3");
@@ -243,8 +248,6 @@ var gameObj = {
 							$("div.panel-body").find("a").eq(0).addClass("paper").attr("data-rps","paper").append(gameObj.rpsObj.paper[1])
 							$("div.playerTwo").aprepend("<a href='#!'>");
 							$("div.playerTwo").find("a").eq(0).addClass("scissors").attr("data-rps","scissors").append(gameObj.rpsObj.scissors[1]);
-							
-
 							
 							$("div.panel-body").find("img").addClass("img-responsive center-block");
 							$("div.panel-body").find("a").addClass("float").wrap("<div class='col-lg-4 col-md-4 col-sm-6 col-xs-6'>")
@@ -276,7 +279,7 @@ var gameObj = {
 				//on click, log selection to firebase
 				$("body").on("click","img",function () {
 					event.preventDefault()
-					// debugger;
+					
 
 					if (gameObj.plyrTurn === 1) { 
 						
@@ -291,7 +294,6 @@ var gameObj = {
 							turn:gameObj.turn
 						})
 
-						// $(".playerOne").fin
 						gameObj.plyrOneClone = $(".playerOne").find(".col-lg-4").clone();
 						gameObj.plyrOneDtch = $(".playerOne").find(".col-lg-4").detach();
 						for (var i in gameObj.rpsObj) {
@@ -304,12 +306,11 @@ var gameObj = {
 						
 						//attach the picture matching the data attr for the current pick
 							//for the length of the rps object keys, if key matches data ref object of the player  pick, DOM print the pic
-						
-						
+							
 					} else if (gameObj.plyrTurn === 2) {
 						// 
 						gameObj.plyrTwoChoice = $(this).closest("a").data("rps")
-						// debugger;
+						
 						database.ref("players").child("2").update({
 							choice: gameObj.plyrTwoChoice 
 						})
@@ -327,8 +328,7 @@ var gameObj = {
 								$(".playerTwo").find("a").append(this).attr("data-rps", gameObj.plyrTwoChoice);
 							}
 						}
-						
-						
+							
 					}
 					//on click, log the rps data
 					//set choice to a local variable
@@ -338,22 +338,19 @@ var gameObj = {
 
 					//html the a tag with the matching data attribute
 
-					// debugger;
 					var round = database.ref().on("value", function(snapshot) {
-						// debugger;
 
 						if (snapshot.child("players").child("1").child("choice").exists() && snapshot.child("players").child("2").child("choice").exists()) {
-							// debugger;
+							
 							gameObj.plyrOneChoice = snapshot.child("players").child("1").val().choice;
 							gameObj.plyrTwoChoice = snapshot.child("players").child("2").val().choice;
 							console.log(snapshot.child("players").child("1").val().choice)
 							console.log(snapshot.child("players").child("2").val().choice)
-							// debugger;
+							
 							database.ref().off("value", round)
 
 							gameObj.gameRound();
 
-						
 						}
 					});
 				})
@@ -367,7 +364,7 @@ var gameObj = {
 				//gamelogic updates the player divs at the start of the game(or when new player comes online). need to update both players after a game begins
 				
 				database.ref().on("value", function(snapshot) {
-					// debugger;
+					
 					//if it's your turn and there are choices to make
 					$("div.game").empty();
 					$("h2.text-center").remove();
@@ -377,7 +374,6 @@ var gameObj = {
 	
 							$(".gameMsgOne").empty();
 
-							
 							$("h3.gameMsg").after("<h3 class='gameMsgOne text-center'>" + "It's your turn.")
 							
 							//needs to link back to the rps click function 
@@ -392,8 +388,6 @@ var gameObj = {
 									$("div.playerOne").prepend("<a href='#!'>");
 									$("div.playerOne").find("a").eq(0).addClass("scissors").attr("data-rps","scissors").append(gameObj.rpsObj.scissors[0]);
 									
-
-
 									$("div.panel-body").find("img").addClass("img-responsive center-block");
 									$("div.panel-body").find("a").addClass("float").wrap("<div class='col-lg-4 col-md-4 col-sm-6 col-xs-6'>")
 									$("a.rock").parent().addClass("col-lg-offset-2 col-md-offset-2 col-sm-offset-3 col-xs-offset-3");
@@ -410,8 +404,6 @@ var gameObj = {
 									$("div.playerTwo").prepend("<a href='#!'>");
 									$("div.playerTwo").find("a").eq(0).addClass("scissors").attr("data-rps","scissors").append(gameObj.rpsObj.scissors[1]);
 									
-
-									
 									$("div.panel-body").find("img").addClass("img-responsive center-block");
 									$("div.panel-body").find("a").addClass("float").wrap("<div class='col-lg-4 col-md-4 col-sm-6 col-xs-6'>")
 									$("a.rock").parent().addClass("col-sm-offset-3 col-xs-offset-3");
@@ -420,7 +412,6 @@ var gameObj = {
 								} 
 							//focus on re-using code  
 						
-				
 					}	else { 
 						$(".gameMsgOne").empty();
 						
@@ -443,12 +434,12 @@ var gameObj = {
 						};
 
 				
-				// debugger;
+				
 					if (gameObj.plyrOneChoice !== "" && gameObj.plyrTwoChoice !== "") { 
 
 						//grabs all of second player's icons instead of the one displaying
 							var draw = database.ref().on("value", function (snapshot) {
-								debugger;
+					
 								// var tempOne = $("div.playerOne").find("a").detach();
 								$("div.playerOne").find("a").addClass("temp");
 								$("div.playerOne").find("a").after("<h2 class='text-center'>" + gameObj.plyrOneChoice);
@@ -467,8 +458,6 @@ var gameObj = {
 						// $(".playerOne").prepend(tempOne);
 						// $(".playerTwo").prepend(tempTwo);
 
-					
-						//
 						if (gameObj.plyrOneChoice === gameObj.plyrTwoChoice) {
 							
 							gameObj.ties++
@@ -543,15 +532,12 @@ var gameObj = {
 							updateTwo.find("p.losses").text("Losses: " + gameObj.plyrTwoLosses)
 							updateTwo.find("p.ties").text("Ties: " + gameObj.ties)
 						
-
-
 					};
 
 					//set timeout 5 seconds, then run the yourTurn function to re-populate the game. 
 					gameObj.nextRound = setTimeout(gameObj.yourTurn, 1000 * 5);
 
 			}
-
 
 		}
 
