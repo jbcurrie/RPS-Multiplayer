@@ -1,6 +1,6 @@
 # RPS-Multiplayer
 
-A classic game, built with Javascript, Node.js and Firebase. 
+A classic game, built with Javascript, jQuery and Firebase. 
 
 Play against other users who join the game on the same session. 
 
